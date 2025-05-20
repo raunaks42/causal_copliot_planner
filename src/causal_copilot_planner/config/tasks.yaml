@@ -163,7 +163,7 @@ run_dummy_agent_task:
   description: |
     Read 'SubSubGoals.json' and find all subsubgoals assigned to 'dummy_specialized_agent' with status='pending'. For each:
     - Mark the subsubgoal as 'completed'
-    - Add a dummy output such as "This is a dummy result for {description}."
+    - Add a dummy output such as "This is a dummy result."
     - Save the result in the field called 'output'
 
     This agent always pretends the task was executed perfectly and returns maximal quality content, no matter the actual task.

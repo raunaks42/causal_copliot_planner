@@ -12,9 +12,6 @@ scientist_agent:
     and ensure all steps stay aligned with the original causal question. You know how to judge when enough evidence has been gathered
     to make a defensible causal claim.
   allow_delegation: false
-  tools:
-    - FileReadTool
-    - FileWriteTool
 
 assistant_agent:
   role: >
@@ -30,9 +27,6 @@ assistant_agent:
     You track task progress using shared documents, update subgoal states, and adapt your orchestration strategy based on feedback from the Scientist Agent.
     You are the glue that keeps all moving parts coordinated, ensuring that subgoals are executed efficiently and aligned with scientific expectations.
   allow_delegation: true
-  tools:
-    - FileReadTool
-    - FileWriteTool
 
 dummy_specialized_agent:
   role: >
@@ -44,6 +38,3 @@ dummy_specialized_agent:
     You are a non-functional agent used for testing the multi-agent pipeline. You do not perform actual computation,
     but instead always return a fixed dummy output and assume the task was successful with maximum quality.
   allow_delegation: false
-  tools:
-    - FileReadTool
-    - FileWriteTool

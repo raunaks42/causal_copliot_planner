@@ -25,23 +25,31 @@ def run():
     }
     
     try:
-        planner_crew = CausalCopilotPlanner().crew()
+        planner = CausalCopilotPlanner()
+        # scientist_agent=planner.scientist_agent()
+        # assistant_agent=planner.assistant_agent()
+        # create_plan= planner.create_plan()
+        # start_subgoal=planner.start_subgoal()
+        # collect_subgoal_results=planner.collect_subgoal_results()
+        # evaluate_subgoal=planner.evaluate_subgoal()
+
         specialized_agents_crew = CausalCopilotSpecializedAgents().crew()
 
         print("🔁 Executing: create_plan")
-        planner_crew.task(name="create_plan").execute(inputs=inputs)
+        planner.crew(task_name="create_plan").kickoff(inputs=inputs)
 
         while True:
             print("🔁 Executing: start_subgoal")
-            planner_crew.task(name="start_subgoal").execute(inputs=inputs)
+            planner.crew(task_name="start_subgoal").kickoff(inputs=inputs)
 
+            print("🔁 Executing: run_specialized_subsubgoals")
             specialized_agents_crew.kickoff(inputs=inputs)
 
             print("🔁 Executing: collect_subgoal_results")
-            planner_crew.task(name="collect_subgoal_results").execute(inputs=inputs)
+            planner.crew(task_name="collect_subgoal_results").kickoff(inputs=inputs)
 
             print("🔁 Executing: evaluate_subgoal")
-            planner_crew.task(name="evaluate_subgoal").execute(inputs=inputs)
+            planner.crew(task_name="evaluate_subgoal").kickoff(inputs=inputs)
 
             with open("SubGoals.json", "r") as f:
                 subgoals = json.load(f)
