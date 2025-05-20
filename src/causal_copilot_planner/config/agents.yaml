@@ -33,3 +33,17 @@ assistant_agent:
   tools:
     - FileReadTool
     - FileWriteTool
+
+dummy_specialized_agent:
+  role: >
+    Placeholder specialist for testing and mocking purposes
+  goal: >
+    Complete any subsubgoal with a default dummy output to simulate agent behavior.
+    Always return a plausible-looking result and assume full success.
+  backstory: >
+    You are a non-functional agent used for testing the multi-agent pipeline. You do not perform actual computation,
+    but instead always return a fixed dummy output and assume the task was successful with maximum quality.
+  allow_delegation: false
+  tools:
+    - FileReadTool
+    - FileWriteTool

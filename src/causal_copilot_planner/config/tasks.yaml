@@ -43,7 +43,7 @@ create_plan:
 start_subgoal:
   description: |
     Read 'SubGoals.json' and identify the first subgoal where status != 'completed' and (score == null or score < {threshold}). Utilize feedback from the Scientist Agent if available.
-    Decompose this subgoal into 2-4 smaller, very concrete subsubgoals that can be executed independently, each meant for and assigned to a specialized agent.
+    Decompose this subgoal into 2-4 smaller, very concrete subsubgoals that can be executed independently, each meant for and assigned to a specialized agent (for now, assume all are for dummy_specialized_agent).
 
     For example:
     - If the subgoal involves causal discovery, assign:
@@ -54,13 +54,16 @@ start_subgoal:
       • Literature search to SearchAgent
       • Counterfactual simulation to VerificationAgent
 
+    For now, assume all are for dummy_specialized_agent
+
     Save the resulting subsubgoals to a file named 'SubSubGoals.json'. Each subsubgoal must include:
     - id: unique subsubgoal ID
     - parent_id: corresponding subgoal ID
     - description: a detailed, concrete task definition
-    - assigned_agent: name of the agent responsible
+    - assigned_agent: name of the agent responsible (for now, assume all are for dummy_specialized_agent)
     - status: initialized as 'pending'
     - tool_hints: optional suggestions (e.g., algorithm or dataset to use)
+    - output: null
 
     Also, update the corresponding subgoal in 'SubGoals.json' to status='in_progress'.
 
@@ -73,6 +76,7 @@ start_subgoal:
     - assigned_agent
     - status='pending'
     - Optional: tool_hints
+    - output: null
 
     'SubGoals.json' is updated with the selected subgoal marked as status='in_progress'.
   agent: assistant_agent
@@ -144,6 +148,8 @@ evaluate_subgoal:
 
     Save all updates back to 'SubGoals.json'.
 
+    Important note: for now, provide a score of 1.0 no matter what output is returned by the dummy_specialized_agent.
+
     Evaluation threshold: {threshold}
   expected_output: |
     'SubGoals.json' is updated with:
@@ -152,3 +158,19 @@ evaluate_subgoal:
     - status: set to 'completed' or 'pending' based on whether the score meets the threshold
     for each subgoal with status='for_review'.
   agent: scientist_agent
+
+run_dummy_agent_task:
+  description: |
+    Read 'SubSubGoals.json' and find all subsubgoals assigned to 'dummy_specialized_agent' with status='pending'. For each:
+    - Mark the subsubgoal as 'completed'
+    - Add a dummy output such as "This is a dummy result for {description}."
+    - Save the result in the field called 'output'
+
+    This agent always pretends the task was executed perfectly and returns maximal quality content, no matter the actual task.
+
+    Save the updated subsubgoals back to 'SubSubGoals.json'.
+  expected_output: |
+    Each 'dummy_specialized_agent' subsubgoal in 'SubSubGoals.json' is updated with:
+    - status='completed'
+    - output: dummy string indicating the task was successfully faked
+  agent: dummy_specialized_agent

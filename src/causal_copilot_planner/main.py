@@ -3,7 +3,7 @@ import json
 import sys
 import warnings
 
-from causal_copilot_planner.crew import CausalCopilotPlanner
+from causal_copilot_planner.crew import CausalCopilotPlanner, CausalCopilotSpecializedAgents
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
@@ -25,20 +25,23 @@ def run():
     }
     
     try:
-        causal_copilot_crew = CausalCopilotPlanner().crew()
+        planner_crew = CausalCopilotPlanner().crew()
+        specialized_agents_crew = CausalCopilotSpecializedAgents().crew()
 
         print("🔁 Executing: create_plan")
-        causal_copilot_crew.task(name="create_plan").execute(inputs=inputs)
+        planner_crew.task(name="create_plan").execute(inputs=inputs)
 
         while True:
             print("🔁 Executing: start_subgoal")
-            causal_copilot_crew.task(name="start_subgoal").execute(inputs=inputs)
+            planner_crew.task(name="start_subgoal").execute(inputs=inputs)
+
+            specialized_agents_crew.kickoff(inputs=inputs)
 
             print("🔁 Executing: collect_subgoal_results")
-            causal_copilot_crew.task(name="collect_subgoal_results").execute(inputs=inputs)
+            planner_crew.task(name="collect_subgoal_results").execute(inputs=inputs)
 
             print("🔁 Executing: evaluate_subgoal")
-            causal_copilot_crew.task(name="evaluate_subgoal").execute(inputs=inputs)
+            planner_crew.task(name="evaluate_subgoal").execute(inputs=inputs)
 
             with open("SubGoals.json", "r") as f:
                 subgoals = json.load(f)
