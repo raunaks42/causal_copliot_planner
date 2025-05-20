@@ -11,8 +11,10 @@ scientist_agent:
     and steering the research process with rigor and precision. You maintain high scientific standards, adapt plans dynamically, 
     and ensure all steps stay aligned with the original causal question. You know how to judge when enough evidence has been gathered
     to make a defensible causal claim.
-  verbose: true
   allow_delegation: false
+  tools:
+    - FileReadTool
+    - FileWriteTool
 
 assistant_agent:
   role: >
@@ -27,5 +29,7 @@ assistant_agent:
     You specialize in translating high-level plans into targeted actions by delegating work to specialized agents like search, coding, and discovery agents.
     You track task progress using shared documents, update subgoal states, and adapt your orchestration strategy based on feedback from the Scientist Agent.
     You are the glue that keeps all moving parts coordinated, ensuring that subgoals are executed efficiently and aligned with scientific expectations.
-  verbose: true
   allow_delegation: true
+  tools:
+    - FileReadTool
+    - FileWriteTool

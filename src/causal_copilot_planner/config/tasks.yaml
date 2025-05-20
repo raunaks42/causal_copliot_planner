@@ -2,7 +2,7 @@ create_plan:
   description: |
     You are given a causal question or a dataset with a user query. Begin by identifying the treatment(s), outcome(s),
     and any relevant confounders or domain assumptions. Use this information to formulate a causal analysis plan consisting
-    of structured subgoals, each targeting a phase in the pipeline such as:
+    of structured high-level subgoals, each targeting a phase in the pipeline such as:
     - Background literature search and constraint identification
     - Data preprocessing and diagnostics
     - Causal graph discovery (e.g., PC, NOTEARS, LiNGAM)
@@ -13,18 +13,17 @@ create_plan:
     For each subgoal, specify the objective and expected output only. Do not assign agents — this will be handled in later steps.
     Write the resulting subgoal list to 'SubGoals.json'.
 
-    {self.__tip_section()}
-
     User query: {causal_query}
     Dataset: {dataset_name}
   expected_output: |
-    A file named 'SubGoals.json' containing a list of 4-6 subgoals tailored to the causal question. Each subgoal must include:
+    A file named 'SubGoals.json' containing a list of 4-6 high-level subgoals tailored to the causal question. Each subgoal must include:
 
-    - description: a clear, concise goal (e.g., \"Run causal discovery on the cleaned dataset using NOTEARS\")
+    - description: a clear, concise goal (e.g., \"Run causal discovery on the cleaned dataset\")
     - expected_output: the expected deliverable for the subgoal (e.g., \"a DAG with estimated edge weights and adjacency matrix\")
     - status: always initialized as 'pending'
     - score: null
     - feedback: null
+    - combined_results: null
 
     Example structure:
     [
@@ -34,7 +33,8 @@ create_plan:
         "expected_output": "A list of at least 3 relevant papers and a summary of domain constraints",
         "status": "pending",
         "score": null,
-        "feedback": null
+        "feedback": null,
+        "combined_results": null,
       },
       ...
     ]
@@ -42,8 +42,8 @@ create_plan:
 
 start_subgoal:
   description: |
-    Read 'SubGoals.json' and identify the first subgoal where status != 'completed' and (score == null or score < {threshold}).
-    Decompose this subgoal into 2-4 smaller subsubgoals that can be executed independently, each assigned to a specialized agent.
+    Read 'SubGoals.json' and identify the first subgoal where status != 'completed' and (score == null or score < {threshold}). Utilize feedback from the Scientist Agent if available.
+    Decompose this subgoal into 2-4 smaller, very concrete subsubgoals that can be executed independently, each meant for and assigned to a specialized agent.
 
     For example:
     - If the subgoal involves causal discovery, assign:
@@ -57,14 +57,12 @@ start_subgoal:
     Save the resulting subsubgoals to a file named 'SubSubGoals.json'. Each subsubgoal must include:
     - id: unique subsubgoal ID
     - parent_id: corresponding subgoal ID
-    - description: a concise task definition
+    - description: a detailed, concrete task definition
     - assigned_agent: name of the agent responsible
     - status: initialized as 'pending'
     - tool_hints: optional suggestions (e.g., algorithm or dataset to use)
 
     Also, update the corresponding subgoal in 'SubGoals.json' to status='in_progress'.
-
-    {self.__tip_section()}
 
     Threshold: {threshold}
   expected_output: |
@@ -93,22 +91,15 @@ collect_subgoal_results:
 
     3. Mark the parent subgoal's status as 'for_review'.
 
-    4. Update all related subsubgoals in 'SubSubGoals.json' to status='completed'.
-
     Format the summary according to the requested style:
     - 'structured': use numbered bullet points and section headers
     - 'narrative': use paragraph-style explanation with contextual transitions
-
-    {self.__tip_section()}
 
     Summary style: {summary_style}
   expected_output: |
     'SubGoals.json' is updated with:
     - combined_result: a synthesized, human-readable summary for each updated subgoal
     - status='for_review' for each parent subgoal
-
-    'SubSubGoals.json' is updated with:
-    - All related subsubgoals marked as status='completed'
   agent: assistant_agent
 
 evaluate_subgoal:
@@ -120,16 +111,38 @@ evaluate_subgoal:
     - *Validation*: examine consistency across literature, simulations, and assumptions
     - *Inference*: verify interpretability of causal effect estimates and robustness of assumptions
 
+    Use the following weighted scoring rubric to assign a score between 0.0 and 1.0 for each subgoal:
+
+    Scoring Rubric (rate each on 0.0-1.0 scale):
+
+    1. Clarity and completeness of output (weight: 0.25)  
+       - Are key components (results, assumptions, methodology) clearly presented?
+
+    2. Methodological soundness (weight: 0.30)  
+       - Are methods appropriate and properly applied?
+
+    3. Evidence strength or support (weight: 0.25)  
+       - Is the result backed by sufficient data, literature, or simulation?
+
+    4. Interpretability and usefulness (weight: 0.20)  
+       - Is the result understandable and actionable for the main causal query?
+
+    Compute the final score as a weighted average. Interpret scores as follows:
+    - 0.85 - 1.0: Excellent. No revision needed.
+    - 0.70 - 0.84: Good. Acceptable but could be improved.
+    - 0.50 - 0.69: Marginal. Needs refinement.
+    - < 0.50: Inadequate. Subgoal must be redone.
+
     For each subgoal:
     1. Assign a score between 0.0 and 1.0.
     2. Provide concise but specific feedback highlighting strengths or deficiencies.
     3. Compare the score to the threshold:
-        - If score |= {threshold}, mark the subgoal as 'completed'
+        - If score >= {threshold}, mark the subgoal as 'completed'
         - If score < {threshold}, mark it 'pending' and suggest refinements
 
-    Save all updates back to 'SubGoals.json'.
+    Re-evaluate the entire plan by looking at the subgoals. If deemed necessary, make changes to the plan. Remove or add subgoals if necessary. Maintain the json fields of the unchanged subgoals as they are, such as status, combined results, etc.
 
-    {self.__tip_section()}
+    Save all updates back to 'SubGoals.json'.
 
     Evaluation threshold: {threshold}
   expected_output: |
